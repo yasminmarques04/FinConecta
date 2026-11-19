@@ -1,0 +1,72 @@
+{
+  "name": "FinConecta - Receber WhatsApp",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "finconecta-whatsapp",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "a1b2c3d4-e5f6-4789-9012-abcdef123456",
+      "name": "Webhook Evolution",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        260,
+        300
+      ],
+      "webhookId": "f1nconecta-whatsapp-2026"
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = $json.body ?? $json;\nconst data = payload.data ?? payload;\nconst key = data.key ?? {};\nconst message = data.message ?? {};\nconst remoteJid = key.remoteJid ?? data.remoteJid ?? null;\nconst texto = message.conversation\n  ?? message.extendedTextMessage?.text\n  ?? message.imageMessage?.caption\n  ?? message.videoMessage?.caption\n  ?? message.documentMessage?.caption\n  ?? null;\n\nreturn [{\n  json: {\n    evento: payload.event ?? payload.type ?? null,\n    instancia: payload.instance ?? null,\n    telefone: remoteJid ? remoteJid.replace(/\\\\D/g, '') : null,\n    nome: data.pushName ?? data.notifyName ?? null,\n    mensagem: texto,\n    tipoMensagem: data.messageType ?? null,\n    mensagemDeSaida: key.fromMe ?? false,\n    mensagemId: key.id ?? null,\n    recebidoEm: data.messageTimestamp ?? null,\n    payloadOriginal: payload\n  }\n}];"
+      },
+      "id": "b2c3d4e5-f678-4901-a123-bcdef1234567",
+      "name": "Organizar mensagem",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "content": "Workflow inicial do FinConecta. Importe, salve e ative quando estiver pronto. Depois configure o webhook da Evolution API para enviar o evento MESSAGES_UPSERT para: http://n8n:5678/webhook/finconecta-whatsapp. Esse endereço funciona pela rede Docker compartilhada. Não compartilhe sua API Key.",
+        "height": 220,
+        "width": 440
+      },
+      "id": "c3d4e5f6-7890-4123-b456-cdef12345678",
+      "name": "Instruções",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        220,
+        40
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Evolution": {
+      "main": [
+        [
+          {
+            "node": "Organizar mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d4e5f678-9012-4345-c678-def123456789",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "tags": []
+}

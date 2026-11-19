@@ -1,0 +1,154 @@
+{
+  "name": "FinConecta - WhatsApp completo (API + Evolution)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "finconecta-whatsapp",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "a1111111-1111-4111-8111-111111111111",
+      "name": "Webhook Evolution",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "finconecta-whatsapp-prod"
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = $json.body ?? $json;\nconst data = payload.data ?? {};\nconst key = data.key ?? {};\nconst message = data.message ?? {};\nconst remoteJid = key.remoteJid ?? '';\nconst phone = remoteJid.split('@')[0].replace(/\\D/g, '');\nconst text = message.conversation\n  ?? message.extendedTextMessage?.text\n  ?? message.imageMessage?.caption\n  ?? message.videoMessage?.caption\n  ?? '';\nif (key.fromMe === true || !phone || !text.trim()) return [];\nreturn [{json:{phone, message:text.trim(), instance:payload.instance ?? 'FinConecta'}}];"
+      },
+      "id": "a2222222-2222-4222-8222-222222222222",
+      "name": "Extrair mensagem recebida",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:5000/api/whatsapp/command",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "COLOQUE_A_MESMA_CHAVE_DA_API"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ phone: $json.phone, message: $json.message }) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "a3333333-3333-4333-8333-333333333333",
+      "name": "Chamar API FinConecta",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        740,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://evolution_api:8080/message/sendText/FinConecta",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "COLOQUE_A_API_KEY_GLOBAL_DA_EVOLUTION"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ number: $json.phone, text: $json.reply }) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "a4444444-4444-4444-8444-444444444444",
+      "name": "Enviar resposta WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1000,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "content": "IMPORTANTE: 1) configure whatsapp_api.py e inicie a API Flask no Windows; 2) substitua a chave no nó Chamar API FinConecta; 3) substitua a API Key Global no nó Enviar resposta WhatsApp; 4) configure a Evolution para enviar MESSAGES_UPSERT para http://n8n:5678/webhook/finconecta-whatsapp; 5) ative este workflow. Não compartilhe as chaves.",
+        "height": 300,
+        "width": 460
+      },
+      "id": "a5555555-5555-4555-8555-555555555555",
+      "name": "LEIA ANTES DE ATIVAR",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        220,
+        -80
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Evolution": {
+      "main": [
+        [
+          {
+            "node": "Extrair mensagem recebida",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extrair mensagem recebida": {
+      "main": [
+        [
+          {
+            "node": "Chamar API FinConecta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chamar API FinConecta": {
+      "main": [
+        [
+          {
+            "node": "Enviar resposta WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "tags": []
+}

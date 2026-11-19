@@ -1,0 +1,24 @@
+Importante
+
+Caso queira resetar o banco de dados 
+Remove-Item .\finconecta.db
+
+abrir o powershell para execultar 
+.\.venv\Scripts\python.exe main.py
+
+Ligar o servidor
+docker start evolution_postgres
+docker start evolution_api
+docker start n8n
+
+Caso queira adicionar novos numeros
+$env:FINCONECTA_ALLOWED_PHONES = "553788539687,553788119634"
+$env:FINCONECTA_API_TOKEN = "FinConecta_2026_MinhaChave_Segura_789!xK9
+
+Ligar API do WhasApp
+.\.venv\Scripts\python.exe whatsapp_api.py
+
+
+abrir o powershell para execultar o n8n
+python whatsapp_api.py
+
